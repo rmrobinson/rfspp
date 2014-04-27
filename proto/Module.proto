@@ -1,0 +1,17 @@
+
+import "Common.proto";
+
+package rfs.proto;
+
+// Like the client API, we define different messages for each command.
+// Determining how to decode incoming data is the responsibility of the 'type'
+// field in whichever underlying messaging format is used to convey this data.
+
+// Optional fields aren't used, everything is marked as 'required' to simplify validation.
+// The protocol is simple enough that changes will warrant new messages.
+
+message Module {
+	optional int32 tag = 1;
+}
+
+

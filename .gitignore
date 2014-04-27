@@ -26,6 +26,8 @@ build/
 *.pb.h
 *~
 *.orig
+*.swp
 
 # IDEs
 *.kdev4
+*.xcodeproj/

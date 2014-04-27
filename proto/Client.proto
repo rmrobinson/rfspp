@@ -1,0 +1,110 @@
+
+import "Common.proto";
+
+package rfs.proto;
+
+// We define different messages for each command.
+// Determining how to decode incoming data is the responsibility of the 'type'
+// field in whichever underlying messaging format is used to convey this data.
+
+// Optional fields aren't used, everything is marked as 'required' to simplify validation.
+// The protocol is simple enough that changes will warrant new messages.
+
+message Client {
+    optional int32 tag = 1;
+}
+
+message Response {
+    required RetCode ret = 1;
+    optional string desc = 2;
+}
+
+// To create a file or directory, send a Metadata object with the relevant fields filled in.
+// Sending a Metadata message with valid data, but a new size, will resize the file.
+// Sending a Metdata message with valid data, but a new owner, will change ownership.
+// In response to a client sending a Metadata message, a Response message will be sent.
+
+// To remove a file or directory, send a Remove message with the specified path.
+
+message RemoveMsg {
+    required string path = 1;
+    optional bool force = 2;
+}
+
+// To open a file, select a FID for this client, and request it be opened by path.
+// Return code of either success or failure will validate whether the FID is now valid or not.
+
+message OpenMsg {
+    required int32 fid = 1;
+    required string name = 2;
+}
+
+// To close a file, provide an already opened FID.
+// Return code of either success or failure will validate whether the FID has been released.
+
+message CloseMsg {
+    required int32 fid = 1;
+}
+
+// To read a file, provide an already opened FID, along with the number of bytes to read and an optional
+// offset into the file.
+// The response will either be:
+// - Response message (on error)
+// - File message (on success for a file)
+// - Directory message (on success for a directory).
+
+message ReadMsg {
+    required int32 fid = 1;
+    required int32 size = 2;
+    optional int32 offset = 3;
+}
+
+// The contents of the specified file. May be offset from the beginning of the file, may not be the whole
+// file, those are both contingent on what caused this message to be created.
+// This may be sent as a response to a Read message; or it may be asynchronously generated when a file
+// which has been subscribed to is updated.
+
+// This may be sent from a client to write a new value to the file; a Response message will be generated
+// on either success or failure.
+
+message FileMsg {
+    required int32 fid = 1;
+    required int32 size = 2;
+    optional int32 offset = 3;
+    required bytes data = 4;
+}
+
+// The contents of the specified directory.
+// This may be sent as a response to a Read message; or it may be asynchronously generated when a directory
+// which has been subscribed to is updated.
+
+// This cannot be used by the client to write a new value/remove a value from a directory; it is necessary
+// to either send a new Metadata message (to create entries) or a Remove message (to remove entries).
+//
+// This differs in behaviour from File and Symlink due to the difficulty of keeping multiple files in the
+// correct state.
+
+message DirectoryMsg {
+    required int32 fid = 1;
+    repeated Metadata entries = 2;
+}
+
+// The contents of the specified symbolic link.
+// This may be sent as a response to a Read message; or it may be asynchronously generated when a directory
+// which has been subscribed to is updated.
+
+// This may be sent from a client to write a new value to the symbolic link; a Response message will be generated
+// on either success or failure.
+
+message SymlinkMsg {
+    required int32 fid = 1;
+    required string path = 2;
+}
+
+// A stat request can be made either by an already-opened FID, or by file name.
+// The response to this message will either be a Response message (on failure), or a Metadata message (on success).
+
+message StatMsg {
+    optional int32 fid = 1;
+    optional string name = 2;
+}

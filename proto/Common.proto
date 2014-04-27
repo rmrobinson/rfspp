@@ -1,0 +1,74 @@
+
+package rfs.proto;
+
+// Describes the metadata associated with a file system entry
+// This has the same format for symlinks, directories and files.
+message Metadata {
+    
+    // The type of file system entry represented by this stat entry.
+    enum Type {
+        Directory = 1;
+        Symlink = 2;
+        File = 3;
+        KeyValueFile = 4;
+    }
+    required Type type = 1 [default = File];
+    
+    // The possible permission modes for this file.
+    message Modes {
+        
+        // The different 'types' of mode for a file.
+        message Values {
+            required bool read = 1;
+            required bool write = 2;
+            required bool execute = 3;
+        };
+        
+        required Values user = 1;
+        required Values group = 2;
+        required Values other = 3;
+    }
+    required Modes modes = 2;
+    
+    // The fully qualified name of the file system entry.
+    required string name = 3;
+    
+    // Owning user ID; formatted as a UUID
+    required string uid = 10;
+    // Owning group ID; formatted as a UUID
+    required string gid = 11;
+    
+    // UUID of the host which this file is hosted on.
+    required string hid = 12;
+    // UUID of this file.
+    required string fid = 13;
+    
+    // Size of the file, or number of directory entries.
+    required uint32 size = 20;
+    // Number of entries below this directory; 1 for files & symlinks
+    required uint32 links = 21;
+    
+    // Last time this file was accessed.
+    required uint64 atime = 22;
+    // Last time this file was modified.
+    required uint64 mtime = 23;
+    // Last time the metadata of this file was changed.
+    required uint64 ctime = 24;
+}
+
+// Possible return codes.
+enum RetCode {
+    Success = 0;
+    Unknown = -1;
+    InvalidPath = -10;
+    NoSuchPath = -11;
+    InvalidPermissions = -12;
+    InvalidFid = -13;
+    DuplicateFid = -14;
+    NotSupported = -15;
+    NotImplemented = -16;
+    InvalidData = -17;
+    AlreadyOpen = -18;
+    NotOpen = -19;
+    InvalidMessage = -20;
+}

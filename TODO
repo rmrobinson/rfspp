@@ -1,0 +1,9 @@
+* Instrument sockets so that:
+ - connect/disconnect
+ - read contents, time, size, etc.
+ - write contents, time, size, etc.
+are logged to a file, one file per socket.
+This will make it easier to see exactly what is going on, especially
+when interfacing with things like gpsd, wpa_supplicant, etc.
+
+* 
