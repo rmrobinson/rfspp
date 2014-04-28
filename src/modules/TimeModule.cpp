@@ -5,6 +5,8 @@ extern "C"
 #include <sys/time.h>
 }
 
+#include <algorithm>
+
 #include "File.hpp"
 
 using namespace rfs;
@@ -21,7 +23,7 @@ proto::RetCode TimeModule::read ( const FileHandle&, std::vector<char>& data,
     time_t now = time ( 0 );
     std::string s ( ctime ( &now ) );
 
-    /// @todo Remove the \n included in s
+    s.erase ( std::remove ( s.begin(), s.end(), '\n' ), s.end() );
     std::copy ( s.begin(), s.end(), std::back_inserter ( data ) );
     return proto::Success;
 }

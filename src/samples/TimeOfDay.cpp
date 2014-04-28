@@ -34,7 +34,7 @@ int main()
    }
 
     std::string s ( data.begin(), data.end() );
-    std::cout << "Time: " << s << std::endl;
+    std::cout << "Current Time: " << s << std::endl;
 
     return 0;
 }
