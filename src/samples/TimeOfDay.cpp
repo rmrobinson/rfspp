@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "FileSystem.hpp"
-#include "File.hpp"
+#include "fs/FileSystem.hpp"
+#include "fs/File.hpp"
 #include "modules/TimeModule.hpp"
 
 using namespace rfs;
