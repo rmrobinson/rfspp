@@ -71,4 +71,6 @@ enum RetCode {
     AlreadyOpen = -18;
     NotOpen = -19;
     InvalidMessage = -20;
+    MalformedMessage = -21;
+    NotPossible = -22;
 }

@@ -34,7 +34,7 @@ proto::RetCode TimeModule::write ( const FileHandle&, const std::vector<char>&,
     return proto::NotSupported;
 }
 
-size_t TimeModule::size()
+size_t TimeModule::size() const
 {
     // ctime() returns a string 26 characters long.
     return 26;

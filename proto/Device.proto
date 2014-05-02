@@ -1,0 +1,58 @@
+
+package rfs.proto.modules;
+
+message Location {
+    required string id = 1;
+    required string name = 2;
+    required string description = 3;
+
+    required double latitude = 10;
+    required double longitude = 11;
+}
+
+message Device {
+    required bool isOn = 1;
+
+    enum Type {
+        Generic = 1;
+        Lightbulb = 2;
+        Fan = 3;
+        Monitor = 4;
+        Television = 5;
+    }
+    required Type type = 9 [default = Generic];
+
+    optional string id = 10;
+    optional string name = 11;
+    optional string locId = 12;
+}
+
+message Lightbulb {
+    required Device base = 1;
+
+    optional int32 brightness = 2;
+
+    message Colour {
+        required int32 r = 1;
+        required int32 g = 2;
+        required int32 b = 3;
+    }
+
+    optional Colour colour = 3;
+}
+
+message Display {
+    required Device base = 1;
+
+    enum Input {
+        Composite = 1;
+        SVideo = 2;
+        HDMI1 = 3;
+        HDMI2 = 4;
+        HDMI3 = 5;
+        HDMI4 = 6;
+    }
+    required Input input = 10;
+};
+
+

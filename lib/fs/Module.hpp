@@ -89,7 +89,7 @@ public:
 
     /// @brief Exposes the current size of the data which can be read.
     /// @return Amount of data available to be read (in bytes).
-    virtual size_t size() = 0;
+    virtual size_t size() const = 0;
 
     /// @brief The fully qualified name of the module.
     /// @return Module name.
@@ -105,9 +105,10 @@ public:
         return mode_;
     }
         
-private:
+protected:
     FileSystem& fs_; ///< The file system which is managing this module.
 
+private:
     const std::string name_; ///< The name of the module as it exists in the file system.
 
     const int mode_; ///< The mode of this file.
