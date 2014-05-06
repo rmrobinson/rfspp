@@ -6,10 +6,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wpointer-arith -Wcast-qual -Wm
 # From the Debian hardening guide
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector -Wformat-security")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/Modules/")
+
 add_subdirectory(proto)
 include_directories(${RfsProto_INCLUDE_DIRS})
 
 add_subdirectory(vendor)
+include_directories(${PROJECT_SOURCE_DIR}/vendor)
 
 add_subdirectory(lib)
 include_directories(${PROJECT_SOURCE_DIR}/lib)

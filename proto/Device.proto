@@ -55,4 +55,3 @@ message Display {
     required Input input = 10;
 };
 
-

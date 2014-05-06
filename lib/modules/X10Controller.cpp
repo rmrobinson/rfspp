@@ -4,7 +4,7 @@ extern "C"
 {
 #include <sys/fcntl.h>
 #include <unistd.h>
-#include "vendor/bottlerocket/br_cmd.h"
+#include "bottlerocket/br_cmd.h"
 }
 
 #include <cstdlib>
