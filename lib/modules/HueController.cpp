@@ -20,8 +20,8 @@ HueController::~HueController()
     bulbs_.clear();
 }
 
-proto::RetCode HueController::set ( ProtoModule<proto::modules::Lightbulb>&, const proto::modules::Lightbulb& )
+RetCode HueController::set ( ProtoModule<proto::modules::Lightbulb>&, const proto::modules::Lightbulb& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 

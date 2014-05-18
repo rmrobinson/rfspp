@@ -20,7 +20,12 @@ public:
     /// @param [out] nodes The names of the children of this directory.
     /// If there was an error, this list will not be modified.
     /// @return Standard error code.
-    proto::RetCode getChildren ( std::vector<std::string>& nodes );
+    RetCode getChildren ( std::vector<std::string>& nodes );
+
+    /// @brief Create a new child node in this directory.
+    /// @param [in] name The name of this child (not the full path, just file name).
+    /// @return Standard error code.
+    RetCode addChild ( const std::string& name );
 };
 
 }

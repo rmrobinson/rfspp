@@ -1,5 +1,6 @@
 
 import "Common.proto";
+import "RetCode.proto";
 
 package rfs.proto;
 
@@ -9,10 +10,6 @@ package rfs.proto;
 
 // Optional fields aren't used, everything is marked as 'required' to simplify validation.
 // The protocol is simple enough that changes will warrant new messages.
-
-message Client {
-    optional int32 tag = 1;
-}
 
 message Response {
     required RetCode ret = 1;

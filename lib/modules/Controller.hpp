@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.pb.h"
+#include "RetCode.hpp"
 
 namespace rfs
 {
@@ -13,7 +13,7 @@ public:
     Controller ( FileSystem& fs ) : fs_ ( fs ) {}
     virtual ~Controller();
 
-    virtual proto::RetCode set ( M& module, const S& state ) = 0;
+    virtual RetCode set ( M& module, const S& state ) = 0;
 
     inline FileSystem& getFS() const
     {

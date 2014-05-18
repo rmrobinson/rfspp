@@ -5,6 +5,7 @@
 #include <boost/uuid/uuid.hpp>
 
 #include "Common.pb.h"
+#include "RetCode.hpp"
 
 namespace rfs
 {
@@ -76,47 +77,47 @@ protected:
 
     /// @brief Request that the specified file be opened.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::OpenMsg& req );
+    RetCode sendMessage ( const proto::OpenMsg& req );
 
     /// @brief Request that the specified file be closed.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::CloseMsg& req );
+    RetCode sendMessage ( const proto::CloseMsg& req );
 
     /// @brief Request that the specified file be read.
     /// @param [out] resp The specified file contents; only valid if the return code is success.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::ReadMsg& req, proto::FileMsg& resp );
+    RetCode sendMessage ( const proto::ReadMsg& req, proto::FileMsg& resp );
 
     /// @brief Request that the specified directory be read.
     /// @param [out] resp The specified directory contents; only valid if the return code is success.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::ReadMsg& req, proto::DirectoryMsg& resp );
+    RetCode sendMessage ( const proto::ReadMsg& req, proto::DirectoryMsg& resp );
 
     /// @brief Request that the specified symbolic link be read.
     /// @param [out] resp The specified symlink contents; only valid if the return code is success.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::ReadMsg& req, proto::SymlinkMsg& resp );
+    RetCode sendMessage ( const proto::ReadMsg& req, proto::SymlinkMsg& resp );
 
     /// @brief Request that the specified file metadata be read.
     /// @param [out] resp The metadata of the specified file; only valid if the return code is success.
     /// @return Either sucess (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::StatMsg& req, proto::Metadata& resp );
+    RetCode sendMessage ( const proto::StatMsg& req, Metadata& resp );
 
     /// @brief Create a new file or directory, resize an existing file or directory, or change ownership.
     /// @return Either success (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::Metadata& req );
+    RetCode sendMessage ( const Metadata& req );
 
     /// @brief Remove an existing file or directory.
     /// @return Either success (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::RemoveMsg& req );
+    RetCode sendMessage ( const proto::RemoveMsg& req );
 
     /// @brief Write new contents to a file.
     /// @return Either success (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::FileMsg& req );
+    RetCode sendMessage ( const proto::FileMsg& req );
 
     /// @brief Create a new symlink, or update an existing symlink.
     /// @return Either success (if the operation succeeded), or the relevant error code from the Response message.
-    proto::RetCode sendMessage ( const proto::SymlinkMsg& req, proto::ResponseMsg& resp );
+    RetCode sendMessage ( const proto::SymlinkMsg& req, proto::ResponseMsg& resp );
         
 private:
     std::unordered_map<std::string, Module*> modules_;

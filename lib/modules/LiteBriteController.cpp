@@ -39,7 +39,7 @@ LiteBriteController::~LiteBriteController()
 {
 }
 
-proto::RetCode LiteBriteController::set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& newState )
+RetCode LiteBriteController::set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& newState )
 {
     assert ( &bulb == &bulb_ );
 

@@ -27,17 +27,17 @@ X10Controller::~X10Controller()
     }
 }
 
-proto::RetCode X10Controller::set ( ProtoModule<proto::modules::Device>& dev, const proto::modules::Device& state )
+RetCode X10Controller::set ( ProtoModule<proto::modules::Device>& dev, const proto::modules::Device& state )
 {
     uint8_t devId = UINT8_MAX;
 
     if ( fd_ < 0 || ! nameToId ( dev.getName(), devId ) )
     {
-        return proto::NotPossible;
+        return NotPossible;
     }
 
     x10_br_out ( fd_, devId, ( state.ison() ? ON : OFF ) );
-    return proto::Success;
+    return Success;
 }
 
 bool X10Controller::nameToId ( const std::string& devName, uint8_t& id )

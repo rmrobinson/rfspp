@@ -16,7 +16,7 @@ public:
     X10Controller ( FileSystem& fs, const std::string& portName );
     ~X10Controller();
 
-    virtual proto::RetCode set ( ProtoModule<proto::modules::Device>& dev, const proto::modules::Device& state );
+    virtual RetCode set ( ProtoModule<proto::modules::Device>& dev, const proto::modules::Device& state );
 
 private:
     static bool nameToId ( const std::string& devName, uint8_t& id );

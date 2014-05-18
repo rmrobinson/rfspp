@@ -1,0 +1,26 @@
+
+package rfs;
+
+// Possible return codes.
+enum RetCode {
+    Success = 0;
+    Unknown = -1;
+    InvalidPath = -10;
+    NoSuchPath = -11;
+    InvalidPermissions = -12;
+    InvalidFid = -13;
+    DuplicateFid = -14;
+    NotSupported = -15;
+    NotImplemented = -16;
+    InvalidData = -17;
+    AlreadyOpen = -18;
+    AlreadyExists = -19;
+    NotOpen = -20;
+    InvalidMessage = -21;
+    MalformedMessage = -22;
+    NotPossible = -23;
+    NoData = -24;
+    OutOfRange = -25;
+    MemoryError = -26;
+}
+

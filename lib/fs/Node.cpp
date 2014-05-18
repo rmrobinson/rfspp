@@ -3,7 +3,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "Client.pb.h"
+#include "Message.pb.h"
 
 #include "FileSystem.hpp"
 
@@ -21,11 +21,23 @@ Node::~Node()
     }
 }
 
-proto::RetCode Node::open()
+RetCode Node::create ( const Metadata& md )
+{
+    RetCode rc = fs_.sendMessage ( md );
+
+    if ( rc == Success )
+    {
+        rc = open();
+    }
+
+    return rc;
+}
+
+RetCode Node::open()
 {
     if ( fid_ >= 0 )
     {
-        return proto::AlreadyOpen;
+        return AlreadyOpen;
     }
 
     int32_t newFid = fs_.generateFid();
@@ -34,22 +46,22 @@ proto::RetCode Node::open()
     msg.set_fid ( newFid );
     msg.set_name ( name_ );
 
-    proto::RetCode rc = fs_.sendMessage ( msg );
+    RetCode rc = fs_.sendMessage ( msg );
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
         return rc;
 
     fid_ = newFid;
     fs_.setFid ( newFid, *this );
 
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode Node::close()
+RetCode Node::close()
 {
     if ( fid_ < 0 )
     {
-        return proto::Success;
+        return Success;
     }
 
     proto::CloseMsg msg;
@@ -60,35 +72,51 @@ proto::RetCode Node::close()
     fs_.releaseFid ( fid_ );
     fid_ = -1;
 
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode Node::rename ( const std::string& )
+RetCode Node::stat ( Metadata& md )
 {
-    return proto::NotImplemented;
+    proto::StatMsg msg;
+
+    if ( fid_ >= 0 )
+    {
+        msg.set_fid ( fid_ );
+    }
+    else
+    {
+        msg.set_name ( name_ );
+    }
+
+    return fs_.sendMessage ( msg, md );
 }
 
-proto::RetCode Node::remove()
+RetCode Node::rename ( const std::string& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode Node::setOwner ( const boost::uuids::uuid& uid, const boost::uuids::uuid& gid )
+RetCode Node::remove()
 {
-    proto::Metadata meta;
+    return NotImplemented;
+}
+
+RetCode Node::setOwner ( const boost::uuids::uuid& uid, const boost::uuids::uuid& gid )
+{
+    Metadata meta;
 
     proto::StatMsg statReq;
     statReq.set_name ( name_ );
 
-    proto::RetCode ret = fs_.sendMessage ( statReq, meta );
+    RetCode ret = fs_.sendMessage ( statReq, meta );
 
-    if ( ret != proto::Success )
+    if ( ret != Success )
         return ret;
 
     if ( meta.name() != name_ )
     {
         assert ( false );
-        return proto::InvalidData;
+        return InvalidData;
     }
 
     meta.set_uid ( boost::lexical_cast<std::string> ( uid ) );
@@ -96,8 +124,8 @@ proto::RetCode Node::setOwner ( const boost::uuids::uuid& uid, const boost::uuid
     return fs_.sendMessage ( meta );
 }
 
-proto::RetCode Node::setMode ( int )
+RetCode Node::setMode ( int )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 

@@ -27,6 +27,7 @@ build/
 *~
 *.orig
 *.swp
+*.tmp
 
 # IDEs
 *.kdev4

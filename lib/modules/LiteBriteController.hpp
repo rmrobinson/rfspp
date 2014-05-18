@@ -15,7 +15,7 @@ public:
     LiteBriteController ( FileSystem& fs, int rPin, int gPin, int bPin );
     ~LiteBriteController();
 
-    virtual proto::RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
+    virtual RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
 
 private:
     static bool isReady_;

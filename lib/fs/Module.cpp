@@ -14,15 +14,15 @@ Module::~Module()
     fs_.removeModule ( *this );
 }
 
-proto::RetCode Module::open ( const FileHandle& )
+RetCode Module::open ( const FileHandle& )
 {
     /// @todo Log something useful
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode Module::close ( const FileHandle& )
+RetCode Module::close ( const FileHandle& )
 {
     /// @todo Log something useful
-    return proto::Success;
+    return Success;
 }
 

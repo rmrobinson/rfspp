@@ -15,7 +15,7 @@ TimeModule::TimeModule ( FileSystem& fs ) : Module ( fs, "/time", 0 )
 {
 }
 
-proto::RetCode TimeModule::read ( const FileHandle&, std::vector<char>& data,
+RetCode TimeModule::read ( const FileHandle&, std::vector<char>& data,
                                   size_t, size_t )
 {
     data.clear();
@@ -25,13 +25,13 @@ proto::RetCode TimeModule::read ( const FileHandle&, std::vector<char>& data,
 
     s.erase ( std::remove ( s.begin(), s.end(), '\n' ), s.end() );
     std::copy ( s.begin(), s.end(), std::back_inserter ( data ) );
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode TimeModule::write ( const FileHandle&, const std::vector<char>&,
+RetCode TimeModule::write ( const FileHandle&, const std::vector<char>&,
                                    size_t, size_t )
 {
-    return proto::NotSupported;
+    return NotSupported;
 }
 
 size_t TimeModule::size() const

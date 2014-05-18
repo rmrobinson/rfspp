@@ -4,7 +4,7 @@
 #include <vector>
 #include <boost/uuid/uuid.hpp>
 
-#include "Common.pb.h"
+#include "RetCode.hpp"
 
 namespace rfs
 {
@@ -61,12 +61,12 @@ public:
     /// @brief Open the module for subsequent read/write operations.
     /// @param [in] fd The file handle of the requester.
     /// @return Standard error code.
-    virtual proto::RetCode open ( const FileHandle& fh );
+    virtual RetCode open ( const FileHandle& fh );
 
     /// @brief Close the module once read/write operations are complete.
     /// @param [in] fh The file handle of the requester.
     /// @return Standard error code.
-    virtual proto::RetCode close ( const FileHandle& fh );
+    virtual RetCode close ( const FileHandle& fh );
 
     /// @brief Read data from this module.
     /// @param [in] fh The file handle of the requester.
@@ -74,7 +74,7 @@ public:
     /// @param [in] size The number of bytes to read from the module.
     /// @param [in] offset The offset to start reading the data from.
     /// @return Standard error code.
-    virtual proto::RetCode read ( const FileHandle& fh, std::vector<char>& data,
+    virtual RetCode read ( const FileHandle& fh, std::vector<char>& data,
                                   size_t size, size_t offset ) = 0;
 
     /// @brief Write data to this module.
@@ -84,7 +84,7 @@ public:
     /// The smaller of size and data.size() will be written.
     /// @param [in] offset The offset from the start of the file to start writing data.
     /// @return Standard error code.
-    virtual proto::RetCode write ( const FileHandle& fh, const std::vector<char>& data,
+    virtual RetCode write ( const FileHandle& fh, const std::vector<char>& data,
                                    size_t size, size_t offset ) = 0;
 
     /// @brief Exposes the current size of the data which can be read.

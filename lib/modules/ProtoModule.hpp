@@ -24,19 +24,19 @@ public:
         return state_;
     }
 
-    proto::RetCode update ( const T& newState )
+    RetCode update ( const T& newState )
     {
         (void) newState;
-        return proto::NotImplemented;
+        return NotImplemented;
     }
 
 protected:
-    virtual proto::RetCode read ( const FileHandle&, std::vector<char>& data,
+    virtual RetCode read ( const FileHandle&, std::vector<char>& data,
                                   size_t, size_t offset )
     {
         if ( offset != 0 )
         {
-            return proto::NotSupported;
+            return NotSupported;
         }
 
         data.clear();
@@ -44,32 +44,32 @@ protected:
         std::string tmp;
         if ( ! state_.SerializeToString ( &tmp ) )
         {
-            return proto::MalformedMessage;
+            return MalformedMessage;
         }
 
         std::copy ( tmp.begin(), tmp.end(), std::back_inserter ( data ) );
         assert ( tmp.size() == data.size() );
 
-        return proto::Success;
+        return Success;
     }
 
-    virtual proto::RetCode write ( const FileHandle&, const std::vector<char>& data,
+    virtual RetCode write ( const FileHandle&, const std::vector<char>& data,
                                    size_t, size_t offset )
     {
         if ( offset != 0 )
         {
-            return proto::NotSupported;
+            return NotSupported;
         }
 
         T state;
         if ( ! state.ParseFromArray ( &data[0], data.size() ) )
         {
-            return proto::MalformedMessage;
+            return MalformedMessage;
         }
 
-        proto::RetCode rc = controller_.set ( *this, state );
+        RetCode rc = controller_.set ( *this, state );
 
-        if ( rc == proto::Success )
+        if ( rc == Success )
         {
             state_ = state;
         }

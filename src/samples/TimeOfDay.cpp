@@ -13,9 +13,9 @@ int main()
     TimeModule tm ( fs );
 
     File f ( fs, "/time" );
-    proto::RetCode rc = f.open();
+    RetCode rc = f.open();
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
     {
         std::cerr << "Unable to open file: " << f.getName() << " due to " << rc << std::endl;
         return 1;
@@ -27,7 +27,7 @@ int main()
     std::vector<char> data;
     rc = f.read ( data );
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
     {
         std::cerr << "Unable to read data from file: " << rc << std::endl;
         return 1;

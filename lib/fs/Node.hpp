@@ -5,6 +5,8 @@
 
 #include "Common.pb.h"
 
+#include "RetCode.hpp"
+
 namespace rfs
 {
 class FileSystem;
@@ -30,27 +32,37 @@ public:
     /// This will cause the item to be closed, if it is currently open.
     virtual ~Node();
 
+    /// @brief Create a new file on the file system.
+    /// @param [in] md The metadata associated with this new file.
+    /// @brief Standard error code.
+    RetCode create ( const Metadata& md );
+
     /// @brief Open the node for subsequent operations.
     /// If the node does not exist in the file system, this operation will fail.
     /// @return Standard error code.
-    proto::RetCode open();
+    RetCode open();
 
     /// @brief Close the node.
     /// This won't do anything if the node is not currently open.
     /// @return Standard error code.
-    proto::RetCode close();
+    RetCode close();
+
+    /// @brief Retrieve the metadata for a file.
+    /// @param [out] The metadata to retrieve about this node.
+    /// @return Standard error code.
+    virtual RetCode stat ( Metadata& md );
 
     /// @brief Change the name of this item.
     /// If a particular implementation wishes to not allow this, then this function
     /// can be overriden to simply return a NotSupported error.
     /// @param [in] name The new name for this item.
     /// @return Standard error code.
-    virtual proto::RetCode rename ( const std::string& name );
+    virtual RetCode rename ( const std::string& name );
 
     /// @brief Remove this item from the file system
     /// If this file has already been removed, future operations will fail.
     /// @return Standard error code.
-    virtual proto::RetCode remove();
+    virtual RetCode remove();
 
     /// @brief Retrieve the name of this item.
     /// @return Item name.
@@ -65,12 +77,12 @@ public:
     /// @param [in] user The ID of the new owning user.
     /// @param [in] group The ID of the new owning group.
     /// @return Standard error code.
-    virtual proto::RetCode setOwner ( const boost::uuids::uuid& user, const boost::uuids::uuid& group );
+    virtual RetCode setOwner ( const boost::uuids::uuid& user, const boost::uuids::uuid& group );
 
     /// @brief Set the mode of the node (UNIX mode).
     /// @param [in] mode Bitmask of mode information.
     /// @return Standard error code.
-    virtual proto::RetCode setMode ( int mode );
+    virtual RetCode setMode ( int mode );
 
 protected:
     FileSystem& fs_; ///< The FileSystem instance this node belongs to.

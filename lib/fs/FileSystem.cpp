@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "Client.pb.h"
+#include "Message.pb.h"
 
 #include "Module.hpp"
 #include "Node.hpp"
@@ -64,19 +64,19 @@ void FileSystem::releaseFid ( int32_t fid )
     nodes_[fid] = 0;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::OpenMsg& msg )
+RetCode FileSystem::sendMessage ( const proto::OpenMsg& msg )
 {
     std::unordered_map<std::string, Module*>::const_iterator it = modules_.find ( msg.name() );
 
     if ( it == modules_.end() )
     {
-        return proto::NotImplemented;
+        return NotImplemented;
     }
 
     if ( ! it->second )
     {
         assert ( false );
-        return proto::NoSuchPath;
+        return NoSuchPath;
     }
 
     Module::FileHandle fh;
@@ -86,24 +86,24 @@ proto::RetCode FileSystem::sendMessage ( const proto::OpenMsg& msg )
     return it->second->open ( fh );
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::CloseMsg& msg )
+RetCode FileSystem::sendMessage ( const proto::CloseMsg& msg )
 {
     if ( msg.fid() < 0 || (size_t) msg.fid() >= nodes_.size() || ! nodes_[msg.fid()] )
     {
-        return proto::InvalidFid;
+        return InvalidFid;
     }
 
     std::unordered_map<std::string, Module*>::const_iterator it = modules_.find ( nodes_[msg.fid()]->getName() );
 
     if ( it == modules_.end() )
     {
-        return proto::NotImplemented;
+        return NotImplemented;
     }
 
     if ( ! it->second )
     {
         assert ( false );
-        return proto::NoSuchPath;
+        return NoSuchPath;
     }
 
     Module::FileHandle fh;
@@ -113,24 +113,24 @@ proto::RetCode FileSystem::sendMessage ( const proto::CloseMsg& msg )
     return it->second->close ( fh );
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::ReadMsg& msg, proto::FileMsg& file )
+RetCode FileSystem::sendMessage ( const proto::ReadMsg& msg, proto::FileMsg& file )
 {
     if ( msg.fid() < 0 || (size_t) msg.fid() >= nodes_.size() || ! nodes_[msg.fid()] )
     {
-        return proto::InvalidFid;
+        return InvalidFid;
     }
 
     std::unordered_map<std::string, Module*>::const_iterator it = modules_.find ( nodes_[msg.fid()]->getName() );
 
     if ( it == modules_.end() )
     {
-        return proto::NotImplemented;
+        return NotImplemented;
     }
 
     if ( ! it->second )
     {
         assert ( false );
-        return proto::NoSuchPath;
+        return NoSuchPath;
     }
 
     Module::FileHandle fh;
@@ -138,9 +138,9 @@ proto::RetCode FileSystem::sendMessage ( const proto::ReadMsg& msg, proto::FileM
     fh.fd = msg.fid();
 
     std::vector<char> data;
-    proto::RetCode rc = it->second->read ( fh, data, msg.size(), msg.offset() );
+    RetCode rc = it->second->read ( fh, data, msg.size(), msg.offset() );
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
     {
         return rc;
     }
@@ -150,41 +150,41 @@ proto::RetCode FileSystem::sendMessage ( const proto::ReadMsg& msg, proto::FileM
     file.set_offset ( msg.offset() );
     file.set_data ( std::string ( data.begin(), data.end() ) );
 
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::ReadMsg&, proto::DirectoryMsg& )
+RetCode FileSystem::sendMessage ( const proto::ReadMsg&, proto::DirectoryMsg& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::ReadMsg&, proto::SymlinkMsg& )
+RetCode FileSystem::sendMessage ( const proto::ReadMsg&, proto::SymlinkMsg& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::StatMsg&, proto::Metadata& )
+RetCode FileSystem::sendMessage ( const proto::StatMsg&, Metadata& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::Metadata& )
+RetCode FileSystem::sendMessage ( const Metadata& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::RemoveMsg& )
+RetCode FileSystem::sendMessage ( const proto::RemoveMsg& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::FileMsg& )
+RetCode FileSystem::sendMessage ( const proto::FileMsg& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 
-proto::RetCode FileSystem::sendMessage ( const proto::SymlinkMsg&, proto::ResponseMsg& )
+RetCode FileSystem::sendMessage ( const proto::SymlinkMsg&, proto::ResponseMsg& )
 {
-    return proto::NotImplemented;
+    return NotImplemented;
 }
 

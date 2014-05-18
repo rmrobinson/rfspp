@@ -28,7 +28,7 @@ public:
     /// @param [in] size The number of bytes to read, defaults to full file size.
     /// @param [in] offset The offset of the file to read from, defaults to the beginning of the file.
     /// @return Standard error code.
-    proto::RetCode read ( std::vector<char>& data, size_t size = SIZE_MAX, size_t offset = 0 );
+    RetCode read ( std::vector<char>& data, size_t size = SIZE_MAX, size_t offset = 0 );
 
     /// @brief Write data to the file.
     /// If a previous call to open() has not succeeded, this will fail.
@@ -36,13 +36,13 @@ public:
     /// @param [in] size The number of bytes to write to the file. Defaults to the size of data.
     /// @param [in] offset The offset within the file to start writing the data.
     /// @return Standard error code.
-    proto::RetCode write ( const std::vector<char>& data, size_t size = SIZE_MAX, size_t offset = 0 );
+    RetCode write ( const std::vector<char>& data, size_t size = SIZE_MAX, size_t offset = 0 );
 
     /// @brief Resize the file (either larger or smaller).
     /// If a previous call to open() has not succeeded, this will fail.
     /// @param [in] size The new size of the file.
     /// @return Standard error code.
-    proto::RetCode resize ( size_t size );
+    RetCode resize ( size_t size );
 };
 
 }

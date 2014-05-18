@@ -16,7 +16,7 @@ public:
     HueController ( FileSystem& fs, const std::string& url );
     ~HueController();
 
-    virtual proto::RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
+    virtual RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
 
 private:
     class CurlWrapper* curlm_;

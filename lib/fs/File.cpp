@@ -1,7 +1,7 @@
 #include "File.hpp"
 
 #include "Common.pb.h"
-#include "Client.pb.h"
+#include "Message.pb.h"
 
 #include "FileSystem.hpp"
 
@@ -11,11 +11,11 @@ File::File ( FileSystem& fs, const std::string& name ) : Node ( fs, name )
 {
 }
 
-proto::RetCode File::read ( std::vector<char>& data, size_t size, size_t offset )
+RetCode File::read ( std::vector<char>& data, size_t size, size_t offset )
 {
     if ( fid_ < 0 )
     {
-        return proto::NotOpen;
+        return NotOpen;
     }
 
     proto::ReadMsg msg;
@@ -25,9 +25,9 @@ proto::RetCode File::read ( std::vector<char>& data, size_t size, size_t offset 
 
     proto::FileMsg resp;
 
-    proto::RetCode rc = fs_.sendMessage ( msg, resp );
+    RetCode rc = fs_.sendMessage ( msg, resp );
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
     {
         return rc;
     }
@@ -35,19 +35,19 @@ proto::RetCode File::read ( std::vector<char>& data, size_t size, size_t offset 
     if ( resp.fid() != fid_ || resp.offset() < 0 || (size_t) resp.offset() != offset
         || resp.data().size() > size )
     {
-        return proto::InvalidMessage;
+        return InvalidMessage;
     }
 
     std::copy ( resp.data().begin(), resp.data().end(), std::back_inserter ( data ) );
 
-    return proto::Success;
+    return Success;
 }
 
-proto::RetCode File::write ( const std::vector<char>& data, size_t size, size_t offset )
+RetCode File::write ( const std::vector<char>& data, size_t size, size_t offset )
 {
     if ( fid_ < 0 )
     {
-        return proto::NotOpen;
+        return NotOpen;
     }
 
     const size_t actualSize = ( data.size() < size ? data.size() : size );
@@ -61,27 +61,27 @@ proto::RetCode File::write ( const std::vector<char>& data, size_t size, size_t 
     return fs_.sendMessage ( msg );
 }
 
-proto::RetCode File::resize ( const size_t newSize )
+RetCode File::resize ( const size_t newSize )
 {
     if ( fid_ < 0 )
     {
-        return proto::NotOpen;
+        return NotOpen;
     }
 
     proto::StatMsg msg;
     msg.set_fid ( fid_ );    
 
-    proto::Metadata meta;
-    proto::RetCode rc = fs_.sendMessage ( msg, meta );
+    Metadata meta;
+    RetCode rc = fs_.sendMessage ( msg, meta );
 
-    if ( rc != proto::Success )
+    if ( rc != Success )
     {
         return rc;
     }
 
     if ( meta.name() != name_ )
     {
-        return proto::InvalidMessage;
+        return InvalidMessage;
     }
 
     meta.set_size ( newSize );
