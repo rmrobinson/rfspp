@@ -10,7 +10,7 @@ Directory::Directory ( FileSystem& fs, const std::string& name ) : Node ( fs, na
 {
 }
 
-RetCode Directory::getChildren ( std::vector<std::string>& nodes )
+RetCode Directory::getChildren ( std::vector<Metadata>& nodes )
 {
     if ( fid_ < 0 )
     {
@@ -38,7 +38,10 @@ RetCode Directory::getChildren ( std::vector<std::string>& nodes )
     }
 
     nodes.clear();
-    /// @todo Iterate over the list of metadata entries
+    for ( int i = 0; i < resp.entries().size(); ++i )
+    {
+        nodes.push_back ( resp.entries ( i ) );
+    }
 
     return Success;
 }
@@ -78,7 +81,6 @@ RetCode Directory::addChild ( const std::string& name )
     fullName.append ( name );
 
     msg.set_size ( 0 );
-    msg.set_links ( 0 );
 
     return fs_.sendMessage ( msg );
 }

@@ -4,24 +4,24 @@
 
 namespace rfs
 {
-class FileSystem;
+class ProcessFileSystem;
 
 template<typename M, typename S>
 class Controller
 {
 public:
-    Controller ( FileSystem& fs ) : fs_ ( fs ) {}
+    Controller ( ProcessFileSystem& fs ) : fs_ ( fs ) {}
     virtual ~Controller();
 
-    virtual RetCode set ( M& module, const S& state ) = 0;
+    virtual RetCode set ( M& pfs, const S& state ) = 0;
 
-    inline FileSystem& getFS() const
+    inline ProcessFileSystem& getFS() const
     {
         return fs_;
     }
 
 private:
-    FileSystem& fs_;
+    ProcessFileSystem& fs_;
 
 };
 

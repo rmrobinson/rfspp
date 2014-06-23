@@ -1,26 +1,23 @@
 #include <iostream>
 
-#include "fs/ProcessFileSystem.hpp"
-#include "modules/TimeProcessFile.hpp"
+#include "fs/PosixFileSystem.hpp"
 
 using namespace rfs;
 
 int main()
 {
-    ProcessFileSystem fs;
-
-    TimeProcessFile tm ( fs );
+    PosixFileSystem fs;
 
     FileHandle fh;
-    RetCode rc = fs.openFile ( "/time", false, fh );
+    RetCode rc = fs.openFile ( "/etc/bashrc", false, fh );
 
     if ( rc != Success )
     {
-        std::cerr << "Unable to open file: /time due to " << rc << std::endl;
+        std::cerr << "Unable to open file: /etc/bashrc due to " << rc << std::endl;
         return 1;
     }
     {
-        std::cerr << "Successfully opened file /time" << std::endl;
+        std::cerr << "Successfully opened file /etc/bashrc" << std::endl;
     }
 
     std::vector<char> data;
@@ -34,10 +31,10 @@ int main()
    }
 
     std::string s ( data.begin(), data.end() );
-    std::cout << "Current Time: " << s << std::endl;
+    std::cout << "----- CPU Data -----: " << s << std::endl;
 
     Metadata md;
-    rc = fs.readMetadata ( "/", md );
+    rc = fs.readMetadata ( "/etc/bashrc", md );
 
     if ( rc != Success )
     {

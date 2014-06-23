@@ -2,7 +2,7 @@
 
 using namespace rfs;
 
-HueController::HueController ( FileSystem& fs, const std::string& )
+HueController::HueController ( ProcessFileSystem& fs, const std::string& )
     : Controller ( fs )
 {
 }
@@ -20,7 +20,7 @@ HueController::~HueController()
     bulbs_.clear();
 }
 
-RetCode HueController::set ( ProtoModule<proto::modules::Lightbulb>&, const proto::modules::Lightbulb& )
+RetCode HueController::set ( ProtoProcessFile<proto::modules::Lightbulb>&, const proto::modules::Lightbulb& )
 {
     return NotImplemented;
 }

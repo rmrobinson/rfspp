@@ -12,8 +12,8 @@ extern "C"
 
 using namespace rfs;
 
-X10Controller::X10Controller ( FileSystem& fs, const std::string& portName )
-    : Controller<ProtoModule<proto::modules::Device>, proto::modules::Device> ( fs ), fd_ ( -1 )
+X10Controller::X10Controller ( ProcessFileSystem& fs, const std::string& portName )
+    : Controller<ProtoProcessFile<proto::modules::Device>, proto::modules::Device> ( fs ), fd_ ( -1 )
 {
     fd_ = open ( portName.c_str(), O_RDONLY | O_NONBLOCK );
 }
@@ -27,11 +27,14 @@ X10Controller::~X10Controller()
     }
 }
 
-RetCode X10Controller::set ( ProtoModule<proto::modules::Device>& dev, const proto::modules::Device& state )
+RetCode X10Controller::set ( ProtoProcessFile<proto::modules::Device>& dev, const proto::modules::Device& state )
 {
     uint8_t devId = UINT8_MAX;
 
-    if ( fd_ < 0 || ! nameToId ( dev.getName(), devId ) )
+    const size_t lastSlashIdx = dev.getPath().find_last_of ( '/' );
+    const std::string name = dev.getPath().substr ( lastSlashIdx );
+
+    if ( fd_ < 0 || ! nameToId ( name, devId ) )
     {
         return NotPossible;
     }

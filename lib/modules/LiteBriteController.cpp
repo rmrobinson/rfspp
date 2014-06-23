@@ -12,7 +12,7 @@ using namespace rfs;
 
 LiteBriteController::isReady_ ( false );
 
-LiteBriteController::LiteBriteController ( FileSystem& fs, int rPin, int gPin, int bPin )
+LiteBriteController::LiteBriteController ( ProcessFileSystem& fs, int rPin, int gPin, int bPin )
     : Controller ( fs ), rPin_ ( rPin ), gPin_ ( gPin ), bPin_ ( bPin ),
         bulb_ ( *this, "/dev/liteBrite" )
 {
@@ -39,7 +39,7 @@ LiteBriteController::~LiteBriteController()
 {
 }
 
-RetCode LiteBriteController::set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& newState )
+RetCode LiteBriteController::set ( ProtoProcessFile<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& newState )
 {
     assert ( &bulb == &bulb_ );
 

@@ -3,19 +3,19 @@
 #include <string>
 
 #include "Controller.hpp"
-#include "ProtoModule.hpp"
+#include "ProtoProcessFile.hpp"
 #include "Device.pb.h"
 
 namespace rfs
 {
 
-class LiteBriteController : public Controller<ProtoModule<proto::modules::Lightbulb>, proto::modules::Lightbulb>
+class LiteBriteController : public Controller<ProtoProcessFile<proto::modules::Lightbulb>, proto::modules::Lightbulb>
 {
 public:
-    LiteBriteController ( FileSystem& fs, int rPin, int gPin, int bPin );
+    LiteBriteController ( ProcessFileSystem& fs, int rPin, int gPin, int bPin );
     ~LiteBriteController();
 
-    virtual RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
+    virtual RetCode set ( ProtoProcessFile<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
 
 private:
     static bool isReady_;
@@ -23,7 +23,7 @@ private:
     const int gPin_;
     const int bPin_;
 
-    ProtoModule<proto::modules::Lightbulb> bulb_;
+    ProtoProcessFile<proto::modules::Lightbulb> bulb_;
 };
 
 }

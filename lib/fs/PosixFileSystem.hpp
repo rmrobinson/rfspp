@@ -1,20 +1,15 @@
 #pragma once
 
-#include <string>
-
-#include "Common.pb.h"
-#include "RetCode.hpp"
+#include "FileSystem.hpp"
 
 namespace rfs
 {
 
-/// @brief An abstract class representing common file system operations.
-///
-/// Specific implementations of a file system may or may not support all operations.
-class FileSystem
+class PosixFileSystem : public FileSystem
 {
 public:
-    virtual ~FileSystem();
+    PosixFileSystem ( const std::string& rootPath = "" );
+    virtual ~PosixFileSystem();
 
     virtual RetCode createFile ( const Metadata& md, bool reqWrite, FileHandle& fh );
     virtual RetCode openFile ( const std::string& path, bool reqWrite, FileHandle& fh );
@@ -44,10 +39,11 @@ public:
 
     virtual RetCode setMode ( const std::string& path, const Metadata::Modes& mode );
 
-    bool exists ( const std::string& path ) const;
+private:
+    const std::string rootPath_;
 
-protected:
-    const std::string HostId;
+    std::vector<int> fds_;
+
 };
 
 }

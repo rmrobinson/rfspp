@@ -4,24 +4,24 @@
 #include <vector>
 
 #include "Controller.hpp"
-#include "ProtoModule.hpp"
+#include "ProtoProcessFile.hpp"
 #include "Device.pb.h"
 
 namespace rfs
 {
 
-class HueController : public Controller<ProtoModule<proto::modules::Lightbulb>, proto::modules::Lightbulb>
+class HueController : public Controller<ProtoProcessFile<proto::modules::Lightbulb>, proto::modules::Lightbulb>
 {
 public:
-    HueController ( FileSystem& fs, const std::string& url );
+    HueController ( ProcessFileSystem& fs, const std::string& url );
     ~HueController();
 
-    virtual RetCode set ( ProtoModule<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
+    virtual RetCode set ( ProtoProcessFile<proto::modules::Lightbulb>& bulb, const proto::modules::Lightbulb& state );
 
 private:
     class CurlWrapper* curlm_;
 
-    std::vector<ProtoModule<proto::modules::Lightbulb>*> bulbs_;
+    std::vector<ProtoProcessFile<proto::modules::Lightbulb>*> bulbs_;
 };
 
 }

@@ -11,6 +11,7 @@ message Metadata {
         Symlink = 2;
         File = 3;
         KeyValueFile = 4;
+        Unknown = 5;
     }
     required Type type = 1 [default = File];
     
@@ -28,31 +29,37 @@ message Metadata {
         required Values group = 2;
         required Values other = 3;
     }
-    required Modes modes = 2;
+    optional Modes modes = 2;
     
     // The fully qualified name of the file system entry.
-    required string name = 3;
+    required string path = 3;
     
-    // Owning user ID; formatted as a UUID
-    required string uid = 10;
-    // Owning group ID; formatted as a UUID
-    required string gid = 11;
+    // Owning user ID
+    optional string uid = 10;
+    // Owning group ID
+    optional string gid = 11;
     
     // UUID of the host which this file is hosted on.
-    required string hid = 12;
+    optional string hid = 12;
     // UUID of this file.
-    required string fid = 13;
+    optional string fid = 13;
     
     // Size of the file, or number of directory entries.
-    required uint32 size = 20;
-    // Number of entries below this directory; 1 for files & symlinks
-    required uint32 links = 21;
+    optional uint32 size = 20;
     
     // Last time this file was accessed.
-    required uint64 atime = 22;
+    optional uint64 atime = 22;
     // Last time this file was modified.
-    required uint64 mtime = 23;
+    optional uint64 mtime = 23;
     // Last time the metadata of this file was changed.
-    required uint64 ctime = 24;
+    optional uint64 ctime = 24;
+}
+
+// A file handle used for representing open files
+message FileHandle {
+    // The host ID of the machine owning this file handle.
+    required string hid = 1;
+    // The local file ID given to the process opening this file.
+    required int32 fid = 2;
 }
 

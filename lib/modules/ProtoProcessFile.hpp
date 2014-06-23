@@ -3,21 +3,21 @@
 #include <algorithm>
 #include <cassert>
 
-#include "fs/Module.hpp"
+#include "fs/ProcessFile.hpp"
 #include "Controller.hpp"
 
 namespace rfs
 {
 
 template<typename T>
-class ProtoModule : public Module
+class ProtoProcessFile : public ProcessFile
 {
 public:
-    ProtoModule ( Controller<ProtoModule<T>, T>& controller, const std::string& name )
-        : Module ( controller.getFS(), name, 0 ), controller_ ( controller )
+    ProtoProcessFile ( Controller<ProtoProcessFile<T>, T>& controller, const std::string& name )
+        : ProcessFile ( controller.getFS(), name ), controller_ ( controller )
     {}
 
-    virtual ~ProtoModule() {}
+    virtual ~ProtoProcessFile() {}
 
     inline const T& getState() const
     {
@@ -32,47 +32,41 @@ public:
 
 protected:
     virtual RetCode read ( const FileHandle&, std::vector<char>& data,
-                                  size_t, size_t offset )
+                                  off_t offset, size_t& processed )
     {
         if ( offset != 0 )
-        {
             return NotSupported;
-        }
 
         data.clear();
 
         std::string tmp;
         if ( ! state_.SerializeToString ( &tmp ) )
-        {
             return MalformedMessage;
-        }
 
         std::copy ( tmp.begin(), tmp.end(), std::back_inserter ( data ) );
         assert ( tmp.size() == data.size() );
+
+        processed = tmp.size();
 
         return Success;
     }
 
     virtual RetCode write ( const FileHandle&, const std::vector<char>& data,
-                                   size_t, size_t offset )
+                            off_t offset, size_t& processed )
     {
         if ( offset != 0 )
-        {
             return NotSupported;
-        }
 
         T state;
         if ( ! state.ParseFromArray ( &data[0], data.size() ) )
-        {
             return MalformedMessage;
-        }
 
         RetCode rc = controller_.set ( *this, state );
 
         if ( rc == Success )
-        {
             state_ = state;
-        }
+
+        processed = data.size();
 
         return rc;
     }
@@ -83,7 +77,7 @@ protected:
     }
 
 private:
-    Controller<ProtoModule<T>, T>& controller_; ///< The controller responsible for this module instance.
+    Controller<ProtoProcessFile<T>, T>& controller_; ///< The controller responsible for this module instance.
 
     T state_; ///< The current state of this module instance.
 };

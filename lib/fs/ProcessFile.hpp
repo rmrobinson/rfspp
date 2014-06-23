@@ -2,17 +2,15 @@
 
 #include <string>
 #include <vector>
-#include <boost/uuid/uuid.hpp>
 
-#include "RetCode.hpp"
+#include "ProcessFileSystem.hpp"
 
 namespace rfs
 {
-class FileSystem;
 
 /// @brief A base class used by other classes wishing to expose data via the file system.
-/// A module is a single file within the file system.
-/// Modules can operate in one of two modes:
+/// A process file is a single file within the file system of the local process.
+/// ProcessFiles can operate in one of two modes:
 /// 1) Each time the file is opened, read/write operations take place on the same object
 /// 2) Each time the file is opened, read/write operations take place on independent objects.
 /// Mode 1 is the behaviour exposed by a typical OS file today, where if two different
@@ -29,7 +27,7 @@ class FileSystem;
 /// This allows objects to perform resolution on different hosts without requring
 /// that they synchronize access to a single file.
 ///
-/// All Module implementations need to implement the read(), write() and size()
+/// All ProcessFile implementations need to implement the read(), write() and size()
 /// functions, however if some behaviour isn't required (i.e. read-only files),
 /// simply return NotImplemented for the unused operation.
 /// Mode 1 is default; the provided implementation of open() and close() does nothing.
@@ -37,26 +35,18 @@ class FileSystem;
 /// functions, which is where file-specific context would be created or destroyed. 
 /// The FileHandle object is only really relevant for Mode 2 operation; though it
 /// may provide for useful debugging info in Mode 1 scenarios.
-class Module
+class ProcessFile
 {
 public:
-    /// @brief The unique identifier of a file instance.
-    struct FileHandle
-    {
-        boost::uuids::uuid fsid; ///< The file system ID of this handle.
-        int32_t fd; ///< The file descriptor.
-    };
-
     /// @brief Constructor.
-    /// @param [in] fs The file system this module will register with.
-    /// @param [in] name The fully qualified name of this module in the fs.
-    /// If a file with the name already exists, this instance will replace it.
-    /// @param [in] mode The file access mode.
-    Module ( FileSystem& fs, const std::string& name, int mode );
+    /// @param [in] fs The file system this file will register with.
+    /// @param [in] path The fully qualified path of this file in the fs.
+    /// If a file with the path already exists, this instance will replace it.
+    ProcessFile ( ProcessFileSystem& fs, const std::string& path );
 
     /// @brief Destructor.
     /// This will unregister the module from the file system.
-    virtual ~Module();
+    virtual ~ProcessFile();
 
     /// @brief Open the module for subsequent read/write operations.
     /// @param [in] fd The file handle of the requester.
@@ -70,12 +60,13 @@ public:
 
     /// @brief Read data from this module.
     /// @param [in] fh The file handle of the requester.
-    /// @param [out] data The buffer to store the data in.
-    /// @param [in] size The number of bytes to read from the module.
+    /// @param [out] data The buffer to store the data in + amount of data to read.
     /// @param [in] offset The offset to start reading the data from.
+    /// @param [out] processed The number of bytes filled into the buffer.
+    /// This is guaranteed to be less than or equal to data.size().
     /// @return Standard error code.
     virtual RetCode read ( const FileHandle& fh, std::vector<char>& data,
-                                  size_t size, size_t offset ) = 0;
+                                  off_t offset, size_t& processed ) = 0;
 
     /// @brief Write data to this module.
     /// @param [in] fh The file handle of the requester.
@@ -85,33 +76,33 @@ public:
     /// @param [in] offset The offset from the start of the file to start writing data.
     /// @return Standard error code.
     virtual RetCode write ( const FileHandle& fh, const std::vector<char>& data,
-                                   size_t size, size_t offset ) = 0;
+                                   off_t offset, size_t& processed ) = 0;
 
     /// @brief Exposes the current size of the data which can be read.
     /// @return Amount of data available to be read (in bytes).
     virtual size_t size() const = 0;
 
-    /// @brief The fully qualified name of the module.
-    /// @return Module name.
-    const std::string& getName() const
+    /// @brief The fully qualified path of the file.
+    /// @return ProcessFile path.
+    const std::string& getPath() const
     {
-        return name_;
+        return path_;
     }
 
-    /// @brief The access mode of the module.
-    /// @return File access mode.
-    int getMode() const
+    /// @brief The metadata associated with this entity.
+    /// @return File metadata.
+    const Metadata& getMetadata() const
     {
-        return mode_;
+        return md_;
     }
         
 protected:
-    FileSystem& fs_; ///< The file system which is managing this module.
+    ProcessFileSystem& fs_; ///< The file system which is managing this module.
 
 private:
-    const std::string name_; ///< The name of the module as it exists in the file system.
+    const std::string path_; ///< The name of the module as it exists in the file system.
 
-    const int mode_; ///< The mode of this file.
+    Metadata md_; ///< The metadata of this file.
 };
 
 }
