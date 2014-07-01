@@ -2,7 +2,7 @@
 
 using namespace rfs;
 
-Log::Log ( const std::string& ident, int facility ) : level_ ( Debug )
+Log::Log ( const std::string& ident, int facility ) : level_ ( Log::Debug )
 {
     openlog ( ident.c_str(), LOG_PID, facility ); 
 }
@@ -19,23 +19,27 @@ int Log::sync()
         syslog ( level_, "%s", buf_.c_str() );
 
         buf_.clear();
-        level_ = Debug;
+        level_ = Log::Debug;
     }
 
     return 0;
 }
 
-int Log::overflow ( int c )
+Log::int_type Log::overflow ( int_type c )
 {
-    if ( c != EOF )
+    if ( c != traits_type::eof() )
+    {
         buf_ += static_cast<char> ( c );
+    }
     else
+    {
         sync();
+    }
 
     return c;
 }
 
-std::ostream& rfs::operator<< ( std::ostream& os, const rfs::Level& ll )
+std::ostream& rfs::operator<< ( std::ostream& os, const Log::Level& ll )
 {
     static_cast<Log*> ( os.rdbuf() )->setLevel ( ll );
 
