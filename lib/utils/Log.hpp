@@ -59,11 +59,47 @@ private:
     Level level_; ///< The log level which the buf_ contents will be logged to.
 };
 
-/// @brief Streaming operator; allows log levels to be set on a Log stream
-/// @param [in] os The output stream being provided the log level
-/// @param [in] ll The new log level to set on the stream.
-/// @return The stream being used; should equal os
-std::ostream& operator<< ( std::ostream& os, const Log::Level& ll );
+/// @brief An output log stream which will redirect all output to syslog
+/// This can be used in lieu of redirecting one of cout/cerr/clog since it can
+/// be created locally in a thread, whereas cout/cerr/clog will be per process.
+class Logger : public std::ostream
+{
+public:
+    /// @brief Constructor.
+    /// @param [in] name The syslog ident name.
+    explicit Logger ( const std::string& name );
+
+    /// @brief Destructor.
+    virtual ~Logger() {};
+
+    /// @brief Streaming output operator.
+    /// @param [in] level The level this line should be logged at.
+    Logger& operator<< ( const Log::Level& level );
+
+protected:
+    Log l_; ///< The log stream to output to
+};
+
+/// @brief A class which will handle redirecting an existing output stream to syslog
+/// This can be used on things like cout or cerr; and when destructed will point the
+/// log stream to its original target.
+class LogRedirector
+{
+public:
+    /// @brief Constructor.
+    /// @param [in] name The syslog ident tag to give this stream.
+    /// @param [in] stream The output stream to redirect.
+    explicit LogRedirector ( const std::string& name, std::ostream& stream );
+
+    /// @brief Destructor. Will re-point the provided output stream to its original output buffer.
+    ~LogRedirector();
+
+private:
+    Log l_; ///< The syslog entry to send all output to.
+
+    std::ostream& stream_; ///< The original stream buffer this is wrapping.
+    std::streambuf* const streamBuf_; ///< The original streambuffer used by stream_.
+};
 
 }
 

@@ -1,5 +1,7 @@
 #include "Log.hpp"
 
+#include <iostream>
+
 using namespace rfs;
 
 Log::Log ( const std::string& ident, int facility ) : level_ ( Log::Debug )
@@ -19,7 +21,6 @@ int Log::sync()
         syslog ( level_, "%s", buf_.c_str() );
 
         buf_.clear();
-        level_ = Log::Debug;
     }
 
     return 0;
@@ -39,10 +40,34 @@ Log::int_type Log::overflow ( int_type c )
     return c;
 }
 
-std::ostream& rfs::operator<< ( std::ostream& os, const Log::Level& ll )
+Logger::Logger ( const std::string& name ) : std::ostream ( &l_ ), l_ ( name, LOG_LOCAL0 )
 {
-    static_cast<Log*> ( os.rdbuf() )->setLevel ( ll );
-
-    return os;
 }
 
+Logger& Logger::operator<< ( const Log::Level& level )
+{
+    l_.setLevel ( level );
+    return *this;
+}
+
+LogRedirector::LogRedirector ( const std::string& name, std::ostream& stream )
+    : l_ ( name, LOG_LOCAL0 ), stream_ ( stream ), streamBuf_ ( stream.rdbuf() )
+{
+    stream_.rdbuf ( &l_ );
+
+    if ( &stream == &std::cout )
+    {
+        l_.setLevel ( Log::Warning );
+    }
+    else if ( &stream == &std::cerr )
+    {
+        l_.setLevel ( Log::Err );
+    }
+}
+
+LogRedirector::~LogRedirector()
+{
+    stream_.flush();
+
+    stream_.rdbuf ( streamBuf_ );
+}
