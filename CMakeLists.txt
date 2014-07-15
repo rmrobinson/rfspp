@@ -17,4 +17,6 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor)
 add_subdirectory(lib)
 include_directories(${PROJECT_SOURCE_DIR}/lib)
 
+add_subdirectory(librfs)
+
 add_subdirectory(src)

@@ -2,8 +2,12 @@
 
 #include <deque>
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
+
+#include "Message.hpp"
 
 namespace rfs
 {
@@ -22,21 +26,29 @@ public:
                                          const Message& message ) = 0;
         virtual void onSessionClose ( SessionPtr session ) = 0;
         virtual void onSessionError ( SessionPtr session,
-                                      boost::system::error_code& err ) = 0;
+                                      const boost::system::error_code& err ) = 0;
     };
 
-    Session ( Callback& cb );
+    Session ( boost::asio::io_service& svc, Callback& cb );
 
     std::string getRemote() const;
 
     void write ( const Message& message );
 
+    void close();
+
+    inline boost::asio::local::stream_protocol::socket& socket()
+    {
+        return socket_;
+    }
+
+protected:
+    boost::asio::local::stream_protocol::socket socket_;
+
 private:
     void doHeaderRead ( const boost::system::error_code& err );
     void doPayloadRead ( const boost::system::error_code& err );
     void doNextWrite ( const boost::system::error_code& err );
-
-    boost::asio::basic_stream_socket socket_;
 
     Callback& cb_;
 
