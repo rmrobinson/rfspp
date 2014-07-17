@@ -75,9 +75,9 @@ bool Discovery::Peer::isValid ( const proto::Peer& peer )
     return true;
 }
 
-Discovery::Discovery ( boost::asio::io_service& svc, Callback& cb, const boost::uuids::uuid& id, const uint16_t port )
-    : cb_ ( cb ), id_ ( id ), port_ ( port ),
-      socket_ ( svc ), peerTimeoutCheck_ ( svc, boost::posix_time::seconds ( PEER_IDLE_CHECK_TIME ) ),
+Discovery::Discovery ( boost::asio::io_service& svc, const boost::uuids::uuid& id, const uint16_t port )
+    : id_ ( id ), port_ ( port ), socket_ ( svc ),
+      peerTimeoutCheck_ ( svc, boost::posix_time::seconds ( PEER_IDLE_CHECK_TIME ) ),
       updateTimer_ ( svc, boost::posix_time::seconds ( NETWORK_UPDATE_TIME ) ),
       sendEndpoint_ ( MulticastAddr, MulticastPort )
 {
@@ -136,7 +136,8 @@ void Discovery::doReceive ( const boost::system::error_code& err, size_t bytes )
 
             peers_.insert ( std::make_pair ( peer.id, peerEntry ) );
 
-            cb_.onPeerAdded ( *this, peer );
+            if ( onPeerAddedHandler_ )
+                onPeerAddedHandler_ ( peer );
 
             it = peers_.find ( peer.id );
         }
@@ -144,7 +145,8 @@ void Discovery::doReceive ( const boost::system::error_code& err, size_t bytes )
         {
             it->second.peer = peer;
 
-            cb_.onPeerUpdated ( *this, peer );
+            if ( onPeerUpdatedHandler_ )
+                onPeerUpdatedHandler_ ( peer );
         }
 
         assert ( it != peers_.end() );
@@ -152,7 +154,7 @@ void Discovery::doReceive ( const boost::system::error_code& err, size_t bytes )
     }
     else
     {
-        log_ << Log::Err << "Unable to deserialize recieved Discovery message" << std::endl;
+        log_ << Log::Err << "Unable to deserialize received Discovery message" << std::endl;
     }
 
     socket_.async_receive_from ( boost::asio::buffer ( &recvData_[0], MaxMessageSize ),
@@ -170,7 +172,8 @@ void Discovery::doPeerTimeoutCheck ( const boost::system::error_code& )
     {
         if ( ( now - it->second.lastSeen ) > MaxPeerTimeoutTime )
         {
-            cb_.onPeerRemoved ( *this, it->first );
+            if ( onPeerRemovedHandler_ )
+                onPeerRemovedHandler_ ( it->first );
 
              peers_.erase ( it );
         }

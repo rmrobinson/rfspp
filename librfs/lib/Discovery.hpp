@@ -39,19 +39,7 @@ public:
         uint16_t port;
     };
 
-    class Callback
-    {
-    public:
-        virtual ~Callback() {}
-
-        virtual void onPeerAdded ( const Discovery& instance, const Peer& peer ) = 0;
-
-        virtual void onPeerUpdated ( const Discovery& instance, const Peer& peer ) = 0;
-
-        virtual void onPeerRemoved ( const Discovery& instance, const boost::uuids::uuid& id ) = 0;
-    };
-
-    Discovery ( boost::asio::io_service& svc, Callback& cb, const boost::uuids::uuid& id, const uint16_t port );
+    Discovery ( boost::asio::io_service& svc, const boost::uuids::uuid& id, const uint16_t port );
 
     void start();
 
@@ -66,6 +54,15 @@ public:
     {
         return id_;
     }
+
+    inline void setOnPeerAddedHandler ( std::function<void(const Peer&)> callback )
+    {
+        onPeerAddedHandler_ = callback;
+    }
+
+    void setOnPeerUpdatedHandler ( std::function<void(const Peer&)> callback );
+
+    void setOnPeerRemovedHandler ( std::function<void(const boost::uuids::uuid&)> callback );
 
 private:
     struct PeerEntry
@@ -89,7 +86,9 @@ private:
 
     static Logger log_;
 
-    Callback& cb_;
+    std::function<void(const Peer&)> onPeerAddedHandler_;
+    std::function<void(const Peer&)> onPeerUpdatedHandler_;
+    std::function<void(const boost::uuids::uuid&)> onPeerRemovedHandler_;
 
     const boost::uuids::uuid id_;
     const uint16_t port_;
