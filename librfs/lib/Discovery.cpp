@@ -1,4 +1,9 @@
 
+extern "C"
+{
+#include <ifaddrs.h>
+}
+
 #include <cassert>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
@@ -10,8 +15,10 @@
 
 using namespace rfs;
 
-boost::asio::ip::address Discovery::ListenAddr ( boost::asio::ip::address::from_string ( "0.0.0.0" ) );
-boost::asio::ip::address Discovery::MulticastAddr ( boost::asio::ip::address::from_string ( "239.0.0.1" ) );
+boost::asio::ip::address Discovery::ListenAddr (
+    boost::asio::ip::address::from_string ( "0.0.0.0" ) );
+boost::asio::ip::address Discovery::MulticastAddr (
+    boost::asio::ip::address::from_string ( "239.0.0.1" ) );
 uint16_t Discovery::MulticastPort ( 4653 );
 uint16_t Discovery::MaxMessageSize ( 1500 );
 uint16_t Discovery::MaxPeerTimeoutTime ( 60 * 15 );
@@ -75,7 +82,8 @@ bool Discovery::Peer::isValid ( const proto::Peer& peer )
     return true;
 }
 
-Discovery::Discovery ( boost::asio::io_service& svc, const boost::uuids::uuid& id, const uint16_t port )
+Discovery::Discovery ( boost::asio::io_service& svc, const boost::uuids::uuid& id,
+                       const uint16_t port )
     : id_ ( id ), port_ ( port ), socket_ ( svc ),
       peerTimeoutCheck_ ( svc, boost::posix_time::seconds ( PEER_IDLE_CHECK_TIME ) ),
       updateTimer_ ( svc, boost::posix_time::seconds ( NETWORK_UPDATE_TIME ) ),
@@ -83,6 +91,11 @@ Discovery::Discovery ( boost::asio::io_service& svc, const boost::uuids::uuid& i
 {
     recvData_.reserve ( MaxMessageSize );
     sendData_.reserve ( MaxMessageSize );
+}
+
+Discovery::~Discovery()
+{
+    stop();
 }
 
 void Discovery::start()
@@ -97,66 +110,87 @@ void Discovery::start()
     socket_.set_option ( boost::asio::ip::multicast::enable_loopback ( true ) );
     socket_.set_option ( boost::asio::ip::multicast::join_group ( MulticastAddr ) );
 
-    socket_.async_receive_from ( boost::asio::buffer ( &recvData_[0], MaxMessageSize ),
-                                 lastReceivedEndpoint_,
-                                 boost::bind ( &Discovery::doReceive, this,
-                                     boost::asio::placeholders::error,
-                                     boost::asio::placeholders::bytes_transferred ) );
+    setupNextReceive();
 
-    peerTimeoutCheck_.async_wait ( boost::bind ( &Discovery::doPeerTimeoutCheck, shared_from_this(),
+    peerTimeoutCheck_.async_wait ( boost::bind ( &Discovery::doPeerTimeoutCheck,
+                                       shared_from_this(),
                                        boost::asio::placeholders::error ) );
-    updateTimer_.async_wait ( boost::bind ( &Discovery::doNetworkUpdate, shared_from_this(),
+    updateTimer_.async_wait ( boost::bind ( &Discovery::doNetworkUpdate,
+                                  shared_from_this(),
                                   boost::asio::placeholders::error ) );
 }
 
 void Discovery::stop()
 {
     peerTimeoutCheck_.cancel();
+    updateTimer_.cancel();
+
+    socket_.cancel();
+    socket_.close();
 }
 
 void Discovery::doReceive ( const boost::system::error_code& err, size_t bytes )
 {
     assert ( bytes < MaxMessageSize );
 
+    // Ensure that setupNextReceive() is called before return!
+
     if ( err )
-        return; 
+    {
+        log_ << Log::Crit << "Error on receive: " << err.message() << std::endl;
+        setupNextReceive();
+        return;
+    }
 
     proto::Peer protoPeer;
-    if ( protoPeer.ParseFromArray ( &recvData_[0], bytes )
-         && Peer::isValid ( protoPeer ) )
+    if ( !protoPeer.ParseFromArray ( &recvData_[0], bytes )
+         || !Peer::isValid ( protoPeer ) )
     {
-        Peer peer ( protoPeer );
+        log_ << Log::Err << "Unable to deserialize received Discovery message"
+            << std::endl;
 
-        auto it = peers_.find ( peer.id );
-
-        if ( it == peers_.end() )
-        {
-            PeerEntry peerEntry;
-            peerEntry.peer = peer;
-
-            peers_.insert ( std::make_pair ( peer.id, peerEntry ) );
-
-            if ( onPeerAddedHandler_ )
-                onPeerAddedHandler_ ( peer );
-
-            it = peers_.find ( peer.id );
-        }
-        else if ( peer != it->second.peer )
-        {
-            it->second.peer = peer;
-
-            if ( onPeerUpdatedHandler_ )
-                onPeerUpdatedHandler_ ( peer );
-        }
-
-        assert ( it != peers_.end() );
-        it->second.lastSeen = time ( nullptr );
-    }
-    else
-    {
-        log_ << Log::Err << "Unable to deserialize received Discovery message" << std::endl;
+        setupNextReceive();
+        return;
     }
 
+    Peer peer ( protoPeer );
+
+    if ( peer.id == id_ )
+    {
+        setupNextReceive();
+        return;
+    }
+
+    auto it = peers_.find ( peer.id );
+
+    if ( it == peers_.end() )
+    {
+        PeerEntry peerEntry;
+        peerEntry.peer = peer;
+
+        peers_.insert ( std::make_pair ( peer.id, peerEntry ) );
+
+        if ( onPeerAddedHandler_ )
+            onPeerAddedHandler_ ( peer );
+
+        it = peers_.find ( peer.id );
+    }
+    else if ( peer != it->second.peer )
+    {
+        it->second.peer = peer;
+
+        if ( onPeerUpdatedHandler_ )
+            onPeerUpdatedHandler_ ( peer );
+    }
+
+    assert ( it != peers_.end() );
+    it->second.lastSeen = time ( nullptr );
+
+    setupNextReceive();
+}
+
+void Discovery::setupNextReceive()
+{
     socket_.async_receive_from ( boost::asio::buffer ( &recvData_[0], MaxMessageSize ),
                                  lastReceivedEndpoint_,
                                  boost::bind ( &Discovery::doReceive, this,
@@ -179,49 +213,57 @@ void Discovery::doPeerTimeoutCheck ( const boost::system::error_code& )
         }
     }
 
-    peerTimeoutCheck_.async_wait ( boost::bind ( &Discovery::doPeerTimeoutCheck, shared_from_this(), _1 ) );
+    peerTimeoutCheck_.async_wait ( boost::bind ( &Discovery::doPeerTimeoutCheck,
+                                       shared_from_this(), _1 ) );
 }
 
 void Discovery::doNetworkUpdate ( const boost::system::error_code& )
 {
-
     proto::Peer peer;
     peer.set_id ( boost::lexical_cast<std::string> ( id_ ) );
     peer.set_port ( port_ );
 
-    struct addrinfo hints;
-    memset ( &hints, 0, sizeof ( hints ) );
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    struct ifaddrs *ifaddrs;
 
-    struct addrinfo* results = nullptr;
-
-    if ( getaddrinfo ( nullptr, "0", &hints, &results ) != 0 )
+    if ( getifaddrs ( &ifaddrs ) < 0 )
     {
-        log_ << Log::Err << "Unable to get list of addresses: " << strerror ( errno ) << std::endl;
-        return;
+        log_ << Log::Crit << "Unable to get ifaddrs: " << strerror ( errno )
+            << std::endl;
+        assert ( false );
     }
 
-    char tmp[INET6_ADDRSTRLEN];
-
-    for ( struct addrinfo* curr = results; curr != nullptr; curr = curr->ai_next )
+    for ( struct ifaddrs* ifa = ifaddrs; ifa != nullptr; ifa = ifa->ifa_next )
     {
-        if ( curr->ai_family == AF_INET )
-            inet_ntop ( AF_INET, &( ( ( struct sockaddr_in* ) curr->ai_addr )->sin_addr ), tmp, INET_ADDRSTRLEN );
-        else if ( curr->ai_family == AF_INET6 )
-            inet_ntop ( AF_INET6, &( ( ( struct sockaddr_in6* ) curr->ai_addr )->sin6_addr ), tmp, INET6_ADDRSTRLEN );
-        else
+        if ( ! ifa->ifa_addr )
             continue;
 
-        peer.add_addrs ( tmp );
+        const int family = ifa->ifa_addr->sa_family;
+        char name[INET6_ADDRSTRLEN];
+
+        if ( family == AF_INET )
+        {
+            inet_ntop ( family, &((( struct sockaddr_in* ) ifa->ifa_addr)->sin_addr ),
+                        name, INET_ADDRSTRLEN );
+        }
+        else if ( family == AF_INET6 )
+        {
+            inet_ntop ( family, &((( struct sockaddr_in6* ) ifa->ifa_addr)->sin6_addr ),
+                        name, INET6_ADDRSTRLEN );
+        }
+        else
+        {
+            continue;
+        }
+
+        peer.add_addrs ( name );
     }
 
     const size_t size = peer.ByteSize();
 
     if ( size > MaxMessageSize )
     {
-        log_ << Log::Crit << "Serialized message is too big: " << size << "; can't send" << std::endl;
+        log_ << Log::Crit << "Serialized message is too big: " << size
+            << "; can't send" << std::endl;
         assert ( false );
     }
 
@@ -243,7 +285,8 @@ void Discovery::onSendComplete ( const boost::system::error_code& err )
        log_ << Log::Crit << "Error sending: " << err.message() << std::endl;
     }
 
-    updateTimer_.async_wait ( boost::bind ( &Discovery::doNetworkUpdate, shared_from_this(),
-                                boost::asio::placeholders::error ) );
+    updateTimer_.async_wait ( boost::bind ( &Discovery::doNetworkUpdate,
+                                  shared_from_this(),
+                                  boost::asio::placeholders::error ) );
 }
 
