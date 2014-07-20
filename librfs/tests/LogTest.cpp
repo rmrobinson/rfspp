@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "utils/Log.hpp"
+#include "Log.hpp"
 
 int main()
 {

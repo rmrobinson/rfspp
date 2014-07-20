@@ -31,7 +31,7 @@ message Metadata {
     }
     optional Modes modes = 2;
     
-    // The fully qualified name of the file system entry.
+    // The fully qualified path of the file system entry.
     required string path = 3;
     
     // Owning user ID

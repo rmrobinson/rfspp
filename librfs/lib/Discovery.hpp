@@ -11,10 +11,12 @@
 
 #include "Discovery.pb.h"
 
-#include "utils/Log.hpp"
+#include "Log.hpp"
 
 namespace rfs
 {
+/// @brief Type to use when storing a handle to a Discovery instance.
+typedef std::shared_ptr<class Discovery> DiscoveryPtr;
 
 /// @brief A class which advertises and discovers services on the network.
 /// Upon starting an instance of this class, it will multicast over all available
@@ -197,9 +199,6 @@ private:
     std::unordered_map<boost::uuids::uuid, PeerEntry,
         boost::hash<boost::uuids::uuid> > peers_;
 };
-
-/// @brief Type to use when storing a handle to a Discovery instance.
-typedef std::shared_ptr<Discovery> DiscoveryPtr;
 
 }
 

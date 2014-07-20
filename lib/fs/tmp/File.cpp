@@ -79,7 +79,7 @@ RetCode File::resize ( const size_t newSize )
         return rc;
     }
 
-    if ( meta.name() != name_ )
+    if ( meta.path() != name_ )
     {
         return InvalidMessage;
     }

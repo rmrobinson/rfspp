@@ -113,7 +113,7 @@ RetCode Node::setOwner ( const boost::uuids::uuid& uid, const boost::uuids::uuid
     if ( ret != Success )
         return ret;
 
-    if ( meta.name() != name_ )
+    if ( meta.path() != name_ )
     {
         assert ( false );
         return InvalidData;

@@ -7,10 +7,10 @@
 
 using namespace rfs;
 
-class TestDiscovery
+class DiscoveryTest
 {
 public:
-    TestDiscovery() : d_ ( new Discovery ( svc_, boost::uuids::random_generator()(),
+    DiscoveryTest() : d_ ( new Discovery ( svc_, boost::uuids::random_generator()(),
                           rand() % UINT16_MAX ) ) {}
 
     void run()
@@ -61,7 +61,7 @@ int main()
 {
     srand ( time ( nullptr ) );
 
-    TestDiscovery td;
-    td.run();
+    DiscoveryTest dt;
+    dt.run();
 }
 

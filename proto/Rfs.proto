@@ -1,0 +1,154 @@
+
+import "Common.proto";
+
+package rfs.proto;
+
+// There is a single message which is sent over the wire, containing the possible fields.
+// Based upon the type of the message, more than one field may be present.
+// It is the responsibility of the message receiver to extract the relevent fields for a given message type.
+
+message RfsMsg {
+    // Possible commands to send.
+    enum Command {
+        // The response to a previous message.
+        Response = 1;
+
+        // To create a file or directory, send a Metadata object with the relevant fields filled in.
+        Create = 10;
+        // To remove a file or directory, send a Remove object with the specified path.
+        Remove = 11;
+
+        Open = 20;
+        Close = 21;
+        Read = 22;
+        Write = 23;
+
+        Stat = 30;
+    }
+
+    // The command the receiver of this message should take.
+    required Command cmd = 1;
+
+    // A unique ID which enables one side to match up requests and responses.
+    // Only unique for a given channel; they can be duplicated across different channels.
+    // May be reused once a response has been sent with a tag matching up to the request.
+    required int32 tag = 2;
+
+    // Contains the fields necessary to process a file or directory removal request.
+    message RemoveReq {
+        // The path of the file or directory to remove.
+        required string path = 1;
+        // If a directory is specified but is not empty, setting this to true will remove all its children as well.
+        optional bool force = 2;
+    }
+
+    // The data required to be set if cmd is set to Remove.
+    optional RemoveReq removeReq = 11;
+
+    // To open a file, select a FID for this file, and request it be opened using the specified path.
+    // Return code of either success or failure will validate whether the FID is now valid or not.
+    message OpenReq {
+        // The file ID this client is using to identify subsequent operations on the file.
+        required int32 fid = 1;
+        // The path of the file to open.
+        required string path = 2;
+    }
+
+    // The data required to be set if cmd is set to Open.
+    optional OpenReq openReq = 20;
+
+    // To close a file, provide an already opened FID.
+    // Return code of either success or failure will validate whether the FID has been released.
+    message CloseReq {
+        // The file ID of the file to release.
+        required int32 fid = 1;
+    }
+
+    // The data required to be set if cmd is set to Close.
+    optional CloseReq closeReq = 21;
+
+    // To read a file, provide an already opened FID, along with the number of bytes to read and an optional
+    // offset into the file.
+    // The response will either be:
+    // - Response message (on error)
+    // - File message (on success for a file)
+    // - Directory message (on success for a directory).
+    // - Symlink message (on success for a symlink).
+    message ReadReq {
+        required int32 fid = 1;
+        required int32 size = 2;
+        optional int32 offset = 3;
+    }
+
+    // The data required to be set if cmd is set to Read.
+    optional ReadReq readReq = 22;
+
+    // To request the metadata of a given file, directory or symlink, the path is provided in the request.
+    message StatReq {
+        // The path to the file to stat.
+        optional string path = 1;
+    }
+
+    // The data required to be set if cmd is set to Stat.
+    optional StatReq statRet = 30;
+
+    optional Metadata metadata = 50;
+
+    // The contents of the specified file. May be offset from the beginning of the file, may not be the whole
+    // file, those are both contingent on what caused this message to be created.
+    // This may be sent as a response to a Read message; or it may be asynchronously generated when a file
+    // which has been subscribed to is updated.
+
+    // This may be sent from a client to write a new value to the file; a Response message will be generated
+    // on either success or failure.
+    message File {
+        required int32 fid = 1;
+        required int32 size = 2;
+        optional int32 offset = 3;
+        required bytes data = 4;
+    }
+
+    // The contents of the file, if present.
+    optional File file = 51;
+
+    // The contents of the specified directory.
+    // This may be sent as a response to a Read message; or it may be asynchronously generated when a directory
+    // which has been subscribed to is updated.
+
+    // This cannot be used by the client to write a new value/remove a value from a directory; it is necessary
+    // to either send a new Metadata message (to create entries) or a Remove message (to remove entries).
+    //
+    // This differs in behaviour from File and Symlink due to the difficulty of keeping multiple files in the
+    // correct state.
+    message Directory {
+        repeated Metadata entries = 1;
+    }
+
+    // The contents of the directory, if present.
+    optional Directory directory = 52;
+
+    // The contents of the specified symbolic link.
+    // This may be sent as a response to a Read message; or it may be asynchronously generated when a directory
+    // which has been subscribed to is updated.
+
+    // This may be sent from a client to write a new value to the symbolic link; a Response message will be generated
+    // on either success or failure.
+    message Symlink {
+        required string path = 1;
+    }
+
+    // The contents of the symbolic link, if present.
+    optional Symlink symlink = 53;
+
+    // Contains the response to a previously sent command.
+    message ResponseMsg {
+        // The return code generated by the request.
+        required RetCode ret = 1;
+        // A textual description of the error.
+        optional string desc = 2;
+    }
+
+    // The contents of the response, if present.
+    optional ResponseMsg response = 100;
+}
+
