@@ -24,8 +24,10 @@ public:
 
     void doAccept ( ChannelPtr channel, const boost::system::error_code& err );
 
-private:
+protected:
     std::function<void ( Listener* listener, ChannelPtr channel )> onConnectHandler_;
+
+    static Logger log_;
 };
 
 }

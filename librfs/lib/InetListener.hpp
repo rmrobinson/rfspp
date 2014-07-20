@@ -7,10 +7,10 @@
 namespace rfs
 {
 
-class IpListener : public Listener
+class InetListener : public Listener
 {
 public:
-    IpListener ( boost::asio::io_service& svc, const boost::asio::ip::tcp::endpoint& ep );
+    InetListener ( boost::asio::io_service& svc, const boost::asio::ip::tcp::endpoint& ep );
 
 private:
     virtual void setupNextAccept();

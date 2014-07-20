@@ -1,15 +1,15 @@
-#include "IpListener.hpp"
+#include "InetListener.hpp"
 
 #include <boost/bind.hpp>
 
 using namespace rfs;
 
-IpListener::IpListener ( boost::asio::io_service& svc, const boost::asio::ip::tcp::endpoint& ep )
+InetListener::InetListener ( boost::asio::io_service& svc, const boost::asio::ip::tcp::endpoint& ep )
     : acceptor_ ( svc, ep )
 {
 }
 
-void IpListener::setupNextAccept()
+void InetListener::setupNextAccept()
 {
     boost::asio::generic::stream_protocol proto ( acceptor_.local_endpoint().protocol() );
     ChannelPtr channel ( new Channel ( acceptor_.get_io_service(), proto ) );
@@ -18,7 +18,7 @@ void IpListener::setupNextAccept()
                              boost::bind ( &Listener::doAccept, this, channel, boost::asio::placeholders::error ) );
 }
 
-std::string IpListener::getEndpoint() const
+std::string InetListener::getEndpoint() const
 {
     const boost::asio::ip::tcp::endpoint& ep = acceptor_.local_endpoint();
     std::stringstream ss;

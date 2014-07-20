@@ -4,6 +4,8 @@
 
 #include "Rfs.pb.h"
 
+#include "RetCode.hpp"
+
 namespace rfs
 {
 
@@ -13,9 +15,7 @@ public:
     Client();
     ~Client();
 
-    RetCode start();
-
-    RetCode open ( Handle& hd );
+    RetCode open ( uint32_t& hd );
 
     RetCode close ( uint32_t hd );
 
@@ -28,7 +28,14 @@ public:
     RetCode stat ( const std::string& path, Metadata& md );
 
 private:
-    RetCode doOperation ( const proto::RfsMsg& cmd, proto::RfsMsg& resp );
+    RetCode connect();
+    void disconnect();
+    RetCode execCmd ( const proto::RfsMsg& cmd, proto::RfsMsg& resp );
+
+    inline bool isConnected() const
+    {
+        return ( fd_ >= 0 );
+    }
 
     int fd_;
 };

@@ -1,5 +1,6 @@
 
 import "Common.proto";
+import "RetCode.proto";
 
 package rfs.proto;
 
@@ -90,7 +91,7 @@ message RfsMsg {
     }
 
     // The data required to be set if cmd is set to Stat.
-    optional StatReq statRet = 30;
+    optional StatReq statReq = 30;
 
     optional Metadata metadata = 50;
 

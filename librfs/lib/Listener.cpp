@@ -2,6 +2,8 @@
 
 using namespace rfs;
 
+Logger Listener::log_ ( "rfsListener" );
+
 void Listener::start()
 {
     setupNextAccept();
@@ -9,7 +11,15 @@ void Listener::start()
 
 void Listener::doAccept ( ChannelPtr channel, const boost::system::error_code& err )
 {
-    if ( ! err && onConnectHandler_ )
+    log_ << Log::Crit << "Listener on " << getEndpoint() << " received connection" << std::endl;
+
+    if ( err )
+    {
+        log_ << Log::Crit << "Error accepting on channel " << getEndpoint() << ": " << err.message() << std::endl;
+
+        abort();
+    }
+    else if ( onConnectHandler_ )
     {
         onConnectHandler_ ( this, channel );
     }

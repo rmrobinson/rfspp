@@ -8,30 +8,7 @@ using namespace rfs;
 
 uint32_t Channel::MaxMessageSize ( 1024 * 128 );
 
-void Channel::Header::reset()
-{
-    size = 0;
-}
-
-bool Channel::Header::serialize ( char* data, size_t dataSize ) const
-{
-    if ( dataSize < sizeof ( Header ) )
-        return false;
-
-    memcpy ( data, this, sizeof ( Header ) );
-    return true;
-}
-
-bool Channel::Header::deserialize ( const std::vector<char>& data )
-{
-    if ( data.size() < sizeof ( Header ) )
-        return false;
-
-    const Header* tmp = reinterpret_cast<const Header*> ( &data[0] );
-    size = ntohl ( tmp->size );
-
-    return true;
-}
+Logger Channel::log_ ( "rfsChannel" );
 
 Channel::Channel ( boost::asio::io_service& svc, const boost::asio::generic::stream_protocol& proto )
     : socket_ ( svc, proto )
@@ -48,16 +25,18 @@ void Channel::send ( const proto::RfsMsg& msg )
 {
     bool writeInProgress = ( writeMsgs_.size() > 0 );
 
-    const size_t hdrSize = sizeof ( Header );
+    const size_t hdrSize = sizeof ( WireHeader );
     const size_t msgSize = msg.ByteSize();
     std::vector<char> tmp ( hdrSize + msgSize );
 
-    Header hdr;
+    WireHeader hdr;
     hdr.size = msgSize;
 
-    if ( ! hdr.serialize ( &tmp[0], hdrSize ) || ! msg.SerializeToArray ( &tmp[hdrSize], msgSize ) )
+    if ( ! hdr.serialize ( &tmp[0], hdrSize )
+          || ! msg.SerializeToArray ( &tmp[hdrSize], msgSize ) )
     {
-        log_ << Log::Crit << "Unable to serialize RFS message to array, size " << msgSize << std::endl;
+        log_ << Log::Crit << "Unable to serialize RFS message to array, size "
+            << msgSize << std::endl;
         return;
     }
 
@@ -69,7 +48,8 @@ void Channel::send ( const proto::RfsMsg& msg )
 
         boost::asio::async_write ( socket_,
                                    boost::asio::buffer ( toSend ),
-                                   boost::bind ( &Channel::doNextWrite, shared_from_this(),
+                                   boost::bind ( &Channel::doNextWrite,
+                                       shared_from_this(),
                                        boost::asio::placeholders::error ) );
     }
 }
@@ -78,10 +58,11 @@ void Channel::doHeaderRead ( const boost::system::error_code& err, size_t readSi
 {
     if ( err )
     {
-        if ( err != boost::asio::error::eof && err != boost::asio::error::connection_reset )
+        if ( err != boost::asio::error::eof
+              && err != boost::asio::error::connection_reset )
         {
-            log_ << Log::Crit << "Error occurred when writing to socket: " << err.message()
-                << ", closing socket" << std::endl;
+            log_ << Log::Crit << "Error occurred when writing to socket: "
+                << err.message() << ", closing socket" << std::endl;
         }
 
         if ( closeCb_ )
@@ -90,11 +71,12 @@ void Channel::doHeaderRead ( const boost::system::error_code& err, size_t readSi
         return;
     }
 
-    assert ( readSize == sizeof ( Header ) );
+    assert ( readSize == sizeof ( WireHeader ) );
 
     if ( ! readHdr_.deserialize ( readMsg_ ) )
     {
-        log_ << Log::Crit << "Unable to parse header message of size " << readSize << std::endl;
+        log_ << Log::Crit << "Unable to parse header message of size "
+            << readSize << std::endl;
 
         assert ( false );
         return;
@@ -102,7 +84,8 @@ void Channel::doHeaderRead ( const boost::system::error_code& err, size_t readSi
     else if ( readHdr_.size > MaxMessageSize )
     {
         log_ << Log::Crit << "Received a request for a message of size " << readHdr_.size
-            << " but the max allowed size is " << MaxMessageSize << "; resetting channel" << std::endl;
+            << " but the max allowed size is " << MaxMessageSize
+            << "; resetting channel" << std::endl;
 
         if ( closeCb_ )
             closeCb_();
@@ -114,17 +97,19 @@ void Channel::doHeaderRead ( const boost::system::error_code& err, size_t readSi
     boost::asio::async_read ( socket_,
                               boost::asio::buffer ( &readMsg_[0], readHdr_.size ),
                               boost::bind ( &Channel::doPayloadRead, shared_from_this(),
-                                  boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ) );
+                                  boost::asio::placeholders::error,
+                                  boost::asio::placeholders::bytes_transferred ) );
 }
 
 void Channel::doPayloadRead ( const boost::system::error_code& err, size_t readSize )
 {
     if ( err )
     {
-        if ( err != boost::asio::error::eof && err != boost::asio::error::connection_reset )
+        if ( err != boost::asio::error::eof
+              && err != boost::asio::error::connection_reset )
         {
-            log_ << Log::Crit << "Error occurred when writing to socket: " << err.message()
-                << ", closing socket" << std::endl;
+            log_ << Log::Crit << "Error occurred when writing to socket: "
+                << err.message() << ", closing socket" << std::endl;
         }
 
         if ( closeCb_ )
@@ -145,19 +130,21 @@ void Channel::doPayloadRead ( const boost::system::error_code& err, size_t readS
     readMsg_.clear();
 
     boost::asio::async_read ( socket_,
-                              boost::asio::buffer ( &readMsg_[0], sizeof ( Header ) ),
+                              boost::asio::buffer ( &readMsg_[0], sizeof ( WireHeader ) ),
                               boost::bind ( &Channel::doHeaderRead, shared_from_this(),
-                                  boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ) );
+                                  boost::asio::placeholders::error,
+                                  boost::asio::placeholders::bytes_transferred ) );
 }
 
 void Channel::doNextWrite ( const boost::system::error_code& err )
 {
     if ( err )
     {
-        if ( err != boost::asio::error::eof && err != boost::asio::error::connection_reset )
+        if ( err != boost::asio::error::eof
+            && err != boost::asio::error::connection_reset )
         {
-            log_ << Log::Crit << "Error occurred when writing to socket: " << err.message()
-                << ", closing socket" << std::endl;
+            log_ << Log::Crit << "Error occurred when writing to socket: "
+                << err.message() << ", closing socket" << std::endl;
         }
 
         if ( closeCb_ )

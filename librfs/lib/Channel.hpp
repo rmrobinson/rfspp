@@ -8,6 +8,7 @@
 #include "Rfs.pb.h"
 
 #include "Log.hpp"
+#include "WireHeader.hpp"
 
 namespace rfs
 {
@@ -21,8 +22,15 @@ public:
 
     void close();
 
-    void setOnReceiveHandler ( std::function<void( const proto::RfsMsg& msg )> cb );
-    void setOnCloseHandler ( std::function<void()> cb );
+    inline void setOnReceiveHandler ( std::function<void( const proto::RfsMsg& msg )> cb )
+    {
+        recvCb_ = cb;
+    }
+
+    inline void setOnCloseHandler ( std::function<void()> cb )
+    {
+        closeCb_ = cb;
+    }
 
     void send ( const proto::RfsMsg& msg );
 
@@ -32,20 +40,6 @@ public:
     }
 
 private:
-
-#pragma pack(push,1)
-    struct Header
-    {
-        uint32_t size;
-
-        Header() : size ( 0 ) {}
-
-        void reset();
-
-        bool serialize ( char* data, size_t dataSize ) const;
-        bool deserialize ( const std::vector<char>& data );
-    };
-#pragma pack(pop)
 
     void doHeaderRead ( const boost::system::error_code& err, size_t readSize );
     void doPayloadRead ( const boost::system::error_code& err, size_t readSize );
@@ -60,7 +54,7 @@ private:
     std::function<void( const proto::RfsMsg& msg )> recvCb_;
     std::function<void()> closeCb_;
 
-    Header readHdr_;
+    WireHeader readHdr_;
     std::vector<char> readMsg_;
 
     std::deque< std::vector<char> > writeMsgs_;

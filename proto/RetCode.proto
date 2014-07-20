@@ -27,5 +27,10 @@ enum RetCode {
     InvalidUser = -29;
     InvalidGroup = -30;
     InvalidFileType = -31;
+    UnableToConnect = -32;
+    SocketError = -33;
+    AlreadyStarted = -34;
+    WriteError = -35;
+    ReadError = -36;
 }
 
